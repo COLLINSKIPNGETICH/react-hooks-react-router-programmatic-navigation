@@ -1,12 +1,13 @@
-import React, { useState } from "react";
-import { useHistory } from "react-router-dom";
+import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 
-function Login({ setIsLoggedIn }) {
-  const history = useHistory();
+function Login({ onLogin }) {
   const [formData, setFormData] = useState({
-    username: "",
-    password: "",
+    username: '',
+    password: '',
   });
+
+  const history = useHistory();
 
   function handleChange(e) {
     setFormData({
@@ -17,16 +18,32 @@ function Login({ setIsLoggedIn }) {
 
   function handleSubmit(e) {
     e.preventDefault();
-
-    setIsLoggedIn(true);
-
-    // after logging the user in, redirect to the home page!
-    history.push("/");
+    fetch('http://localhost:3001/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+      .then((r) => {
+        if (!r.ok) {
+          throw new Error('Login failed');
+        }
+        return r.json();
+      })
+      .then((user) => {
+        onLogin(user);
+        // after logging the user in, redirect to the home page!
+        history.push('/home');
+      })
+      .catch((error) => {
+        console.error('Login error:', error);
+        // Handle login error, show a message to the user, etc.
+      });
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      <h1>Login</h1>
       <input
         type="text"
         name="username"
@@ -45,3 +62,4 @@ function Login({ setIsLoggedIn }) {
 }
 
 export default Login;
+
